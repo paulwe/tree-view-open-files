@@ -12,20 +12,12 @@ module.exports =
 			description: 'Maximum height of the list before scrolling is required. Set to 0 to disable scrolling.'
 
 	activate: (state) ->
-		requirePackages('tree-view').then ([treeView]) =>
+		requirePackages('nuclide-file-tree').then ([fileTree]) =>
 			@treeViewOpenFilesView = new TreeViewOpenFilesView
+			@treeViewOpenFilesView.update();
 
-			if treeView.treeView
-				@treeViewOpenFilesView.show()
-
-			atom.commands.add 'atom-workspace', 'tree-view:toggle', =>
-				if treeView.treeView?.is(':visible')
-					@treeViewOpenFilesView.show()
-				else
-					@treeViewOpenFilesView.hide()
-
-			atom.commands.add 'atom-workspace', 'tree-view:show', =>
-				@treeViewOpenFilesView.show()
+			atom.commands.add 'atom-workspace', 'nuclide-file-tree:toggle', =>
+				@treeViewOpenFilesView.update()
 
 	deactivate: ->
 		@treeViewOpenFilesView.destroy()

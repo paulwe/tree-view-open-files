@@ -1,8 +1,25 @@
 @import "ui-variables";
 
+.tree-view-open-files-wrap {
+	width: 0;
+	position: relative;
+}
+
+.tree-view-open-files-resize-trigger {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: -1;
+}
+
 .tree-view-open-files {
 	> .list-tree {
-		width: 100%;
+		width: auto;
 		overflow: auto;
 		padding-left: 5px;
 		padding-right: 10px;

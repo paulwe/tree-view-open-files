@@ -8,7 +8,12 @@ module.exports =
 class TreeViewOpenFilesView
 	constructor: (serializeState) ->
 		# Create root element
+
+		@resizeTriggers = [];
+		@wrap = document.createElement('div')
+		@wrap.classList.add('tree-view-open-files-wrap');
 		@element = document.createElement('div')
+		@wrap.appendChild @element
 		@element.classList.add('tree-view-open-files')
 		@groups = []
 		@paneSub = new CompositeDisposable
@@ -50,9 +55,31 @@ class TreeViewOpenFilesView
 			@show()
 
 	hide: ->
-		@element.remove()
+		@resizeTriggers.forEach trigger -> trigger.remove()
+		@resizeTriggers = [];
+		@element?.remove()
 
-	show: ->
-		requirePackages('tree-view').then ([treeView]) =>
-			treeView.treeView.find('.tree-view-scroller').css 'background', treeView.treeView.find('.tree-view').css 'background'
-			treeView.treeView.prepend @element
+	resizeDetector: (handle) ->
+		obj = document.createElement('object')
+		obj.onload = ->
+			this.contentDocument.defaultView.addEventListener 'resize', handle
+		obj.classList.add('tree-view-open-files-resize-trigger')
+		obj.type = 'text/html'
+		obj.data = 'about:blank'
+		@resizeTriggers.push(obj);
+		return obj
+
+	# Find and nuclide file tree and join its panel
+	update: ->
+		requirePackages('nuclide-file-tree').then =>
+			[panel] = atom.workspace.getLeftPanels().filter (panel) =>
+				return panel.item?.firstChild?.classList.contains 'nuclide-ui-panel-component'
+			if !panel?.visible
+				return @hide()
+			fixWidth = _.debounce => @element.style.width = panel.item.firstChild.style.width
+			fixHeight = _.debounce => panel.item.style.height = 'calc(100% - ' + @element.scrollHeight + 'px)'
+			@wrap.appendChild(@resizeDetector(fixHeight));
+			panel.item.parentElement.insertBefore @resizeDetector(fixWidth), panel.item
+			panel.item.parentElement.insertBefore @wrap, panel.item
+			fixWidth()
+			fixHeight()
